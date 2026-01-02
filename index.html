@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>📊 Tableau de Bord – Assurances Auto</title>
+
+    <!-- Materialize CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- Materialize JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <!-- SheetJS (Excel) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+     <!-- Export PDF -->
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <style>
+  /* =====================
+   GLOBAL
+===================== */
+:root{
+    --primary:#ffffff;
+    --secondary:#ffffff;
+    --warning:#ffffff;
+    --bg:#f2f4f8;
+    --card:#ffffff;
+    --text:#263238;
+    --muted:#607d8b;
+}
+
+body{
+    background:var(--bg);
+    font-family:'Roboto','Segoe UI',sans-serif;
+    color:var(--text);
+}
+
+/* =====================
+   TITLES
+===================== */
+h4{
+    font-weight:600;
+    letter-spacing:.3px;
+    margin:30px 0;
+}
+
+/* =====================
+   FILE INPUT
+===================== */
+.file-field .btn{
+    border-radius:30px;
+    background:linear-gradient(135deg,#118f11,#2e8f11);
+    box-shadow:0 4px 12px rgba(30,136,229,.35);
+}
+.file-path{
+    border-radius:30px!important;
+}
+
+/* =====================
+   INDICATOR CARDS
+===================== */
+.indicator-card{
+    border-radius:16px;
+    padding:22px;
+    text-align:center;
+    color:#fff;
+    box-shadow:0 10px 25px rgba(0,0,0,.12);
+    transition:.3s ease;
+}
+.indicator-card:hover{
+    transform:translateY(-6px);
+    box-shadow:0 16px 35px rgba(0,0,0,.18);
+}
+.indicator-card .card-title{
+    font-size:.95rem;
+    opacity:.9;
+}
+.indicator-card h5{
+    font-size:2rem;
+    font-weight:700;
+    margin-top:10px;
+}
+
+/* =====================
+   FILTER CARD
+===================== */
+.card{
+    border-radius:18px;
+    box-shadow:0 8px 20px rgba(0,0,0,.1);
+}
+.card-content{
+    padding:24px;
+}
+select{
+    background:#fff;
+    border-radius:10px;
+}
+
+/* =====================
+   EXPORT BUTTON
+===================== */
+.export-btn{
+    border-radius:30px;
+    padding:0 28px;
+    font-weight:500;
+    box-shadow:0 6px 18px rgba(211,47,47,.35);
+}
+
+/* =====================
+   SUMMARY SECTION
+===================== */
+.summary-section{
+    padding:25px;
+}
+.card-title{
+    display:block;
+    margin-bottom:15px;
+    font-weight:600;
+}
+
+/* MINI CARDS */
+.summary-card{
+    border-radius:14px;
+    padding:14px 18px;
+    font-size:.95rem;
+    margin:8px 6px;
+    color:#fff;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    min-width:140px;
+    box-shadow:0 6px 14px rgba(0,0,0,.15);
+    transition:.3s ease;
+}
+.summary-card i{
+    font-size:22px;
+}
+.summary-card:hover{
+    transform:scale(1.06);
+    box-shadow:0 10px 22px rgba(0,0,0,.22);
+}
+
+/* =====================
+   TABLE
+===================== */
+table{
+    border-radius:18px;
+    overflow:hidden;
+    box-shadow:0 10px 24px rgba(0,0,0,.12);
+}
+table thead{
+    background:linear-gradient(135deg,#030f44,#072b53);
+    color:#fff;
+}
+table thead th{
+    font-weight:600;
+    letter-spacing:.4px;
+}
+table tbody tr{
+    transition:.2s;
+}
+table tbody tr:hover{
+    background:#e3f2fd!important;
+}
+table td{
+    font-size:.95rem;
+}
+
+/* =====================
+   PDF FRIENDLY
+===================== */
+@media print{
+    body{
+        background:#fff;
+    }
+    .card,
+    table{
+        box-shadow:none;
+    }
+}
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h4 class="center">Tableau de Bord  Assurances Auto</h4>
+
+    <!-- Import Excel -->
+    <div class="file-field input-field">
+        <div class="btn blue darken-2">
+            <span>Importer Excel</span>
+            <input type="file" id="excelFile">
+        </div>
+        <div class="file-path-wrapper">
+            <input class="file-path validate" type="text" placeholder="Choisissez votre fichier Excel">
+        </div>
+    </div>
+
+    <!-- Indicateurs -->
+    <div class="row">
+        <div class="col s12 m4">
+            <div class="indicator-card" style="background: #abc4ad;">
+                <span class="card-title">Nombre de contrats</span>
+                <h5 id="nbContrats">0</h5>
+            </div>
+        </div>
+        <div class="col s12 m4">
+            <div class="indicator-card" style="background: #abc4ad;">
+                <span class="card-title">Prime moyenne</span>
+                <h5 id="primeMoy">0 MAD</h5>
+            </div>
+        </div>
+        <div class="col s12 m4">
+            <div class="indicator-card" style="background: #abc4ad;">
+                <span class="card-title">Prime totale</span>
+                <h5 id="primeTotale">0 MAD</h5>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtres -->
+    <div class="card white">
+        <div class="card-content">
+            <div class="row">
+                <div class="input-field col s12 m4">
+                    <select id="villeFilter">
+                        <option value="">Toutes les villes</option>
+                    </select>
+                    <label>Ville</label>
+                </div>
+                <div class="input-field col s12 m4">
+                    <select id="assuranceFilter">
+                        <option value="">Tous les types</option>
+                    </select>
+                    <label>Type d'assurance</label>
+                </div>
+                <div class="input-field col s12 m4">
+                    <select id="vehiculeFilter">
+                        <option value="">Tous les véhicules</option>
+                    </select>
+                    <label>Type de véhicule</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="center" style="margin:20px 0">
+    <a class="btn red darken-2 export-btn" onclick="exportPDF()">
+        <i class="material-icons left">picture_as_pdf</i>Exporter PDF
+    </a>
+</div>
+
+
+    <!-- Répartition -->
+    <div class="card white summary-section">
+        <div class="row">
+            <div class="col s12 m6">
+                <span class="card-title">Répartition par type d'assurance</span>
+                <div id="assuranceSummary"></div>
+            </div>
+            <div class="col s12 m6">
+                <span class="card-title">Répartition par type de véhicule</span>
+                <div id="vehiculeSummary"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau -->
+    <table class="highlight white">
+        <thead>
+        <tr>
+            <th>Nom & Prénom</th>
+            <th>Ville</th>
+            <th>Type Assurance</th>
+            <th>Type Véhicule</th>
+            <th>Prime Totale (MAD)</th>
+        </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+</div>
+
+<script>
+let data = [];
+$(document).ready(function () {
+    $('select').formSelect();
+});
+
+$("#excelFile").on("change", function (e) {
+    const reader = new FileReader();
+    reader.onload = function (e) {
+        const workbook = XLSX.read(e.target.result, {type: "binary"});
+        const sheet = workbook.Sheets["Assurances_Auto"];
+        data = XLSX.utils.sheet_to_json(sheet);
+
+        remplirFiltres();
+        afficherData(data);
+    };
+    reader.readAsBinaryString(e.target.files[0]);
+});
+
+function remplirFiltres() {
+    remplirSelect("#villeFilter", "Ville");
+    remplirSelect("#assuranceFilter", "Type_Assurance");
+    remplirSelect("#vehiculeFilter", "Type_Vehicule");
+    $('select').formSelect();
+}
+
+function remplirSelect(id, champ) {
+    $(id).find("option:not(:first)").remove();
+    [...new Set(data.map(d => d[champ]))].forEach(v => {
+        $(id).append(`<option value="${v}">${v}</option>`);
+    });
+}
+
+$("select").on("change", function () {
+    const filtered = data.filter(d =>
+        (!$("#villeFilter").val() || d["Ville"] === $("#villeFilter").val()) &&
+        (!$("#assuranceFilter").val() || d["Type_Assurance"] === $("#assuranceFilter").val()) &&
+        (!$("#vehiculeFilter").val() || d["Type_Vehicule"] === $("#vehiculeFilter").val())
+    );
+    afficherData(filtered);
+});
+
+function afficherData(list) {
+    $("#tableBody").empty();
+    let total = 0;
+
+    list.forEach(d => {
+        total += Number(d["Prime_Totale"]);
+        $("#tableBody").append(`
+            <tr>
+                <td>${d["Nom"]} ${d["Prénom"]}</td>
+                <td>${d["Ville"]}</td>
+                <td>${d["Type_Assurance"]}</td>
+                <td>${d["Type_Vehicule"]}</td>
+                <td>${d["Prime_Totale"]}</td>
+            </tr>
+        `);
+    });
+
+    $("#nbContrats").text(list.length);
+    $("#primeTotale").text(total + " MAD");
+    $("#primeMoy").text(list.length ? Math.round(total / list.length) + " MAD" : "0 MAD");
+
+    majGraphiques(list);
+}
+
+function majGraphiques(list) {
+    const repartAssurance = {};
+    const repartVehicule = {};
+
+    list.forEach(d => {
+        repartAssurance[d["Type_Assurance"]] = (repartAssurance[d["Type_Assurance"]] || 0) + 1;
+        repartVehicule[d["Type_Vehicule"]] = (repartVehicule[d["Type_Vehicule"]] || 0) + 1;
+    });
+
+    // Assurances avec icônes et couleurs
+    const iconsAssurance = {
+        "Tiers": {icon: "shield", color: "#42a5f5"},
+        "Tiers+": {icon: "stars", color: "#7e57c2"},
+        "Tous Risques": {icon: "assignment_turned_in", color: "#26a69a"}
+    };
+    const orderAssurance = ["Tiers", "Tiers+", "Tous Risques"];
+    let htmlAssurance = "";
+    orderAssurance.forEach(type => {
+        const count = repartAssurance[type] || 0;
+        const {icon, color} = iconsAssurance[type] || {icon: "shield", color: "#90a4ae"};
+        htmlAssurance += `
+        <div class="summary-card" style="background:${color};">
+            <i class="material-icons left">${icon}</i>${type} : ${count}
+        </div>`;
+    });
+    $("#assuranceSummary").html(htmlAssurance);
+
+    // Véhicules avec icônes et couleurs
+    const iconsVehicule = {
+        "Voiture": {icon: "directions_car", color: "#ef5350"},
+        "Moto": {icon: "motorcycle", color: "#ffca28"},
+        "Camion": {icon: "local_shipping", color: "#66bb6a"}
+    };
+    const orderVehicule = ["Voiture", "Moto", "Camion"];
+    let htmlVehicule = "";
+    orderVehicule.forEach(type => {
+        const count = repartVehicule[type] || 0;
+        const {icon, color} = iconsVehicule[type] || {icon: "directions_car", color: "#90a4ae"};
+        htmlVehicule += `
+        <div class="summary-card" style="background:${color};">
+            <i class="material-icons left">${icon}</i>${type} : ${count}
+        </div>`;
+    });
+    $("#vehiculeSummary").html(htmlVehicule);
+}
+function exportPDF(){
+    const element = document.querySelector(".container");
+    html2pdf()
+      .set({
+        filename: 'tableau_assurances_auto.pdf',
+        jsPDF: {orientation: 'landscape'},
+        html2canvas: {scale: 2}
+      })
+      .from(element)
+      .save();
+}
+
+
+</script>
+
+</body>
+</html>
